@@ -7,12 +7,53 @@ services:
     image: shoppingclient
     build:
       context: .
-      dockerfile: Shopping.Client/Dockerfile
+      dockerfile: Shoppping.Client/Dockerfile
       args:
         - configuration=Debug
     ports:
       - 5001:5001
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
+    depends_on:
+      - shoppping.db
+      - shopppingapi
     volumes:
       - ~/.vsdbg:/remote_debugger:rw
+
+  shopppingapi:
+    image: shopppingapi
+    build:
+      context: .
+      dockerfile: Shoppping.API/Dockerfile
+      args:
+        - configuration=Debug
+    ports:
+      - 5000:5000
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - DatabaseSettings:ConnectionString=mongodb://root:example@shopppingdb:27017/
+      - DatabaseSettings:DatabaseName=ProductDb
+      - DatabaseSettings:CollectionName=Products
+    depends_on:
+      - shoppping.db
+    volumes:
+      - ~/.vsdbg:/remote_debugger:rw
+
+  shoppping.db:
+    image: mongo
+    container_name: shopppingdb
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: example
+  
+  mongo-express:
+    image: mongo-express
+    restart: always
+    ports:
+      - 8081:8081
+    environment:
+      ME_CONFIG_MONGODB_ADMINUSERNAME: root
+      ME_CONFIG_MONGODB_ADMINPASSWORD: example
+      ME_CONFIG_MONGODB_URL: mongodb://root:example@shopppingdb:27017/
+      ME_CONFIG_BASICAUTH: false

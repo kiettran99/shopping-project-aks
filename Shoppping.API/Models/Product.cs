@@ -1,8 +1,12 @@
+using MongoDB.Bson.Serialization.Attributes;
+
 namespace Shopping.API.Models;
 
 public class Product
 {
-    public string? Id { get; set; }
+    [BsonId]
+    [BsonRepresentation(MongoDB.Bson.BsonType.ObjectId)]
+    public string Id { get; set; } = null!;
     public string? Name { get; set; }
     public string? Category { get; set; }
     public string? Description { get; set; }

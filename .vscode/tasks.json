@@ -46,12 +46,12 @@
             "dockerBuild": {
                 "tag": "shoppingprojectaks:dev",
                 "target": "base",
-                "dockerfile": "${workspaceFolder}/Shopping.Client/Dockerfile",
+                "dockerfile": "${workspaceFolder}/Shoppping.API/Dockerfile",
                 "context": "${workspaceFolder}",
                 "pull": true
             },
             "netCore": {
-                "appProject": "${workspaceFolder}/Shopping.Client/Shopping.Client.csproj"
+                "appProject": "${workspaceFolder}/Shoppping.API/Shoppping.API.csproj"
             }
         },
         {
@@ -62,7 +62,7 @@
             ],
             "dockerBuild": {
                 "tag": "shoppingprojectaks:latest",
-                "dockerfile": "${workspaceFolder}/Shopping.Client/Dockerfile",
+                "dockerfile": "${workspaceFolder}/Shoppping.API/Dockerfile",
                 "context": "${workspaceFolder}",
                 "platform": {
                     "os": "linux",
@@ -71,7 +71,7 @@
                 "pull": true
             },
             "netCore": {
-                "appProject": "${workspaceFolder}/Shopping.Client/Shopping.Client.csproj"
+                "appProject": "${workspaceFolder}/Shoppping.API/Shoppping.API.csproj"
             }
         },
         {
@@ -82,7 +82,7 @@
             ],
             "dockerRun": {},
             "netCore": {
-                "appProject": "${workspaceFolder}/Shopping.Client/Shopping.Client.csproj",
+                "appProject": "${workspaceFolder}/Shoppping.API/Shoppping.API.csproj",
                 "enableDebugging": true
             }
         },
@@ -94,7 +94,7 @@
             ],
             "dockerRun": {},
             "netCore": {
-                "appProject": "${workspaceFolder}/Shopping.Client/Shopping.Client.csproj"
+                "appProject": "${workspaceFolder}/Shoppping.API/Shoppping.API.csproj"
             }
         }
     ]

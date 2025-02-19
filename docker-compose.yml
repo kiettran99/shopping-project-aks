@@ -10,3 +10,38 @@ services:
       dockerfile: Shopping.Client/Dockerfile
     ports:
       - 5001:5001
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ServiceUrls:ShoppingApi=http://shopppingapi:5000
+    depends_on:
+      - shoppping.db
+      - shopppingapi
+
+  shopppingapi:
+    image: shopppingapi
+    build:
+      context: .
+      dockerfile: Shoppping.API/Dockerfile
+    ports:
+      - 5000:5000
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - DatabaseSettings:ConnectionString=mongodb://shopppingdb:27017
+      - DatabaseSettings:DatabaseName=ProductDb
+      - DatabaseSettings:CollectionName=Products
+    depends_on:
+      - shoppping.db
+
+  shoppping.db:
+    image: mongo
+    container_name: shopppingdb
+    restart: always
+  
+  mongo-express:
+    image: mongo-express
+    restart: always
+    ports:
+      - 8081:8081
+    environment:
+      ME_CONFIG_MONGODB_URL: mongodb://shopppingdb:27017
+      ME_CONFIG_BASICAUTH: false
