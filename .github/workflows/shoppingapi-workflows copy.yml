@@ -1,0 +1,96 @@
+name: CI/CD Shopping Client
+
+# Trigger on pushes to main when changes occur in the Shopping Client or its Kubernetes manifest.
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - Shopping.Client/**
+      - aks/shoppingclient.yaml
+
+jobs:
+  # ----------------------------- Build & Push Job -----------------------------
+  build:
+    runs-on: ubuntu-latest
+    outputs:
+      imageTag: ${{ steps.setTag.outputs.imageTag }}
+    steps:
+      # Checkout the code from your repo.
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      # Log in to your Azure Container Registry (ACR).
+      # Ensure these secrets are configured: ACR_LOGIN_SERVER, ACR_USERNAME, ACR_PASSWORD.
+      - name: Log in to ACR
+        uses: azure/docker-login@v1
+        with:
+          login-server: ${{ secrets.ACR_LOGIN_SERVER }}
+          username: ${{ secrets.ACR_USERNAME }}
+          password: ${{ secrets.ACR_PASSWORD }}
+
+      # Build and push the Docker image for Shopping Client.
+      # Build context is set to the "/" folder.
+      - name: Build and Push Docker Image
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          file: Shopping.Client/Dockerfile
+          push: true
+          # Tag the image using your ACR login server and a tag derived from the run number.
+          tags: ${{ secrets.ACR_LOGIN_SERVER }}/shoppingclient:${{ github.run_number }}
+
+      # Set an output variable for the image tag so the deploy job can reference it.
+      - name: Set image tag output
+        id: setTag
+        run: echo "imageTag=${{ github.run_number }}" >> $GITHUB_OUTPUT
+
+      # Upload the Kubernetes manifest as an artifact (similar to Azure DevOps’ upload step).
+      - name: Upload Kubernetes Manifest Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: shoppingclient-manifest
+          path: aks
+
+  # ----------------------------- Deploy Job -----------------------------
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      # Download the artifact containing your Kubernetes manifest.
+      - name: Download Kubernetes Manifest Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: shoppingclient-manifest
+          path: aks
+
+      # Set the AKS context so that kubectl can communicate with your cluster.
+      # Ensure these secrets are set: AKS_RESOURCE_GROUP, AKS_CLUSTER_NAME, AZURE_SUBSCRIPTION_ID.
+      - name: Set AKS Context
+        uses: azure/aks-set-context@v1
+        with:
+          resource-group: ${{ secrets.AKS_RESOURCE_GROUP }}
+          cluster-name: ${{ secrets.AKS_CLUSTER_NAME }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      # Create (or update) the imagePullSecret in AKS.
+      # Adjust the docker-email if needed.
+      - name: Create imagePullSecret in AKS
+        run: |
+          kubectl create secret docker-registry shoppingacr20662ab5-auth \
+            --docker-server=${{ secrets.ACR_LOGIN_SERVER }} \
+            --docker-username=${{ secrets.ACR_USERNAME }} \
+            --docker-password=${{ secrets.ACR_PASSWORD }} \
+            --docker-email=${{ secrets.ACR_EMAIL }} \
+            --dry-run=client -o yaml | kubectl apply -f -
+
+      # Deploy the updated image to the Kubernetes cluster.
+      # This applies the manifest and then updates the container image in the deployment.
+      - name: Deploy Shopping Client to AKS
+        run: |
+          # Apply the Kubernetes manifest (if the image is not already templated there).
+          kubectl apply -f aks/shoppingclient.yaml
+          # Update the deployment with the new image.
+          kubectl set image deployment/shoppingclient-deployment shoppingclient=${{ secrets.ACR_LOGIN_SERVER }}/shoppingclient:${{ needs.build.outputs.imageTag }}
+          # Wait for the rollout to complete.
+          kubectl rollout status deployment/shoppingclient-deployment
