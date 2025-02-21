@@ -10,3 +10,5 @@ az aks get-credentials --resource-group devops-self-learning --name myAKSCluster
 -- Create secret/acr-secret
 kubectl create secret docker-registry acr-secret --docker-server=.azurecr.io --docker-username= --docker-password= --docker-email=
 kubectl scale --replicas=3 deployments.apps/shoppingclient-deployment
+
+https://learn.microsoft.com/en-us/azure/aks/kubernetes-action
