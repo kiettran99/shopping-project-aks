@@ -1,5 +1,10 @@
 name: CI/CD Shopping API
 
+# Grant permission for OIDC id-token and read repository contents
+permissions:
+  id-token: write
+  contents: read
+
 # Trigger on pushes to main when changes occur in the Shopping API or its Kubernetes manifest.
 on:
   push:
