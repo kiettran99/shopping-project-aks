@@ -11,4 +11,33 @@ az aks get-credentials --resource-group devops-self-learning --name myAKSCluster
 kubectl create secret docker-registry acr-secret --docker-server=.azurecr.io --docker-username= --docker-password= --docker-email=
 kubectl scale --replicas=3 deployments.apps/shoppingclient-deployment
 
+3. Github Action
+ACR_LOGIN_SERVER: Login ACR in ACR
+ACR_USERNAME: Name of ACR
+ACR_PASSWORD: Password that ACR is provided
+
+AZURE_CLIENT_ID: the client id of a service principal or a user-assigned managed identity
+AZURE_SUBSCRIPTION_ID: the login subscription id
+AZURE_TENANT_ID: the login tenant id
+
+# Replace <your-sp-name>, <subscription-id>, and <resource-group> with your values.
+az ad sp create-for-rbac \
+  --name "<your-sp-name>" \
+  --role Contributor \
+  --scopes /subscriptions/<subscription-id>/resourceGroups/<resource-group> \
+  --sdk-auth
+
+-- This helps Github Action to deploy Azure Resources
+az ad app federated-credential create \
+  --id <YOUR_CLIENT_ID> \
+  --parameters '{
+    "name": "GitHubActions",
+    "issuer": "https://token.actions.githubusercontent.com",
+    "subject": "repo:kiettran99/shopping-project-aks:ref:refs/heads/main",
+    "description": "Federated credentials for GitHub Actions OIDC",
+    "audiences": [
+      "api://AzureADTokenExchange"
+    ]
+  }'
+
 https://learn.microsoft.com/en-us/azure/aks/kubernetes-action
