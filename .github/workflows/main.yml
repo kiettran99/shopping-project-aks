@@ -1,0 +1,47 @@
+name: Build and Push to ACR
+
+# Trigger on pushes and pull requests to the main branch
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build_and_push:
+    runs-on: ubuntu-latest
+    steps:
+      # Step 1: Checkout the repository code
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # Step 2: Log in to Azure Container Registry using secrets
+      # Ensure you have set the following repository secrets:
+      # ACR_LOGIN_SERVER, ACR_USERNAME, and ACR_PASSWORD
+      - name: Log in to ACR
+        uses: azure/docker-login@v1
+        with:
+          login-server: ${{ secrets.ACR_LOGIN_SERVER }}
+          username: ${{ secrets.ACR_USERNAME }}
+          password: ${{ secrets.ACR_PASSWORD }}
+
+      # Step 3: Build and push the Shopping.Client Docker image
+      - name: Build and push Shopping.Client image
+        uses: docker/build-push-action@v4
+        with:
+          # The build context is set to the root of the repo.
+          # If your Dockerfile needs a different context, update this value.
+          context: .
+          file: Shopping.Client/Dockerfile
+          push: true
+          # Tag your image using your ACR login server and a name for the image
+          tags: ${{ secrets.ACR_LOGIN_SERVER }}/shopping-client:latest
+
+      # Step 4: Build and push the Shopping.API Docker image
+      - name: Build and push Shopping.API image
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          file: Shopping.API/Dockerfile
+          push: true
+          tags: ${{ secrets.ACR_LOGIN_SERVER }}/shopping-api:lates
