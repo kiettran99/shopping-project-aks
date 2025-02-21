@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using MongoDB.Driver;
 using Shopping.API.Data;
 
-namespace Shoppping.API.Controllers;
+namespace Shopping.API.Controllers;
 
 [ApiController]
 [Route("[controller]")]

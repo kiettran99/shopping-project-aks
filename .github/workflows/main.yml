@@ -13,7 +13,7 @@ jobs:
     steps:
       # Step 1: Checkout the repository code
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       # Step 2: Log in to Azure Container Registry using secrets
       # Ensure you have set the following repository secrets:
