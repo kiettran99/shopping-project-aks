@@ -1,0 +1,12 @@
+1. Login
+az login
+az acr login --name shoppingarc.azurecr.io
+
+2. Intergrated AKS to kubectrl
+az aks create --resource-group devops-self-learning --name myAKSCluster --node-count 1 --generate-ssh-keys --attach-acr shoppingarc
+sudo az aks install-cli
+az aks get-credentials --resource-group devops-self-learning --name myAKSCluster
+
+-- Create secret/acr-secret
+kubectl create secret docker-registry acr-secret --docker-server=.azurecr.io --docker-username= --docker-password= --docker-email=
+kubectl scale --replicas=3 deployments.apps/shoppingclient-deployment
