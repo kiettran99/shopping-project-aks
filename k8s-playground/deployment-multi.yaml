@@ -1,0 +1,39 @@
+# deployment-multi.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: multi-node-deployment
+spec:
+  replicas: 4 # Tăng số lượng replica để có thể phân phối qua nhiều node
+  selector:
+    matchLabels:
+      app: multi-node-example
+  template:
+    metadata:
+      labels:
+        app: multi-node-example
+    spec:
+      containers:
+        - name: nginx-container
+          image: nginx:latest
+          ports:
+            - containerPort: 80
+          resources:
+            requests:
+              memory: "64Mi"
+              cpu: "250m"
+            limits:
+              memory: "128Mi"
+              cpu: "500m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-container
+spec:
+  selector:
+    app: nginx
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 8080
